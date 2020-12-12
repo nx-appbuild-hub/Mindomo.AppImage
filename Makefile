@@ -13,29 +13,35 @@ PWD:=$(shell pwd)
 
 
 all: clean
-	mkdir --parents $(PWD)/build
+	mkdir --parents $(PWD)/build/Boilerplate.AppDir/mindomo
+	apprepo --destination=$(PWD)/build appdir boilerplate libatk1.0-0 libatk-bridge2.0-0 libgtk-3-0
+	echo "LD_LIBRARY_PATH=\$${LD_LIBRARY_PATH}:\$${APPDIR}/discord" >> $(PWD)/build/Boilerplate.AppDir/AppRun
+	echo "export LD_LIBRARY_PATH=\$${LD_LIBRARY_PATH}" >> $(PWD)/build/Boilerplate.AppDir/AppRun
+	echo "exec \$${APPDIR}/mindomo/mindomo \"\$${@}\"" >> $(PWD)/build/Boilerplate.AppDir/AppRun
 
-	wget --output-document=$(PWD)/build/Mindomo.AppImage https://www.mindomo.com/download/9.4/Mindomo_v.9.4.3_x64.AppImage
+	rm -f $(PWD)/build/Boilerplate.AppDir/*.png | true
+	rm -f $(PWD)/build/Boilerplate.AppDir/*.desktop	| true
+	rm -f $(PWD)/build/Boilerplate.AppDir/*.svg | true	
+
+	wget --output-document=$(PWD)/build/Mindomo.AppImage "https://www.mindomo.com/download/9.4/Mindomo_v.9.4.7_x64.AppImage"
 	chmod +x $(PWD)/build/Mindomo.AppImage
-
 	cd $(PWD)/build && $(PWD)/build/Mindomo.AppImage --appimage-extract
 
-	wget --output-document=$(PWD)/build/build.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/gtk3-3.22.30-5.el8.x86_64.rpm
-	cd $(PWD)/build && rpm2cpio $(PWD)/build/build.rpm | cpio -idmv && cd ..
+	cp --force --recursive $(PWD)/build/squashfs-root/usr/share/* $(PWD)/build/Boilerplate.AppDir/share | true
+	cp --force --recursive $(PWD)/build/squashfs-root/usr/lib/* $(PWD)/build/Boilerplate.AppDir/lib64 | true
 
-	wget --output-document=$(PWD)/build/build.rpm https://ftp.lysator.liu.se/pub/opensuse/distribution/leap/15.2/repo/oss/x86_64/libatk-1_0-0-2.34.1-lp152.1.7.x86_64.rpm
-	cd $(PWD)/build && rpm2cpio $(PWD)/build/build.rpm | cpio -idmv && cd ..
+	rm -rf $(PWD)/build/squashfs-root/usr
 
-	wget --output-document=$(PWD)/build/build.rpm https://ftp.lysator.liu.se/pub/opensuse/distribution/leap/15.2/repo/oss/x86_64/libatk-bridge-2_0-0-2.34.1-lp152.1.5.x86_64.rpm
-	cd $(PWD)/build && rpm2cpio $(PWD)/build/build.rpm | cpio -idmv && cd ..
+	rm -rf $(PWD)/build/Boilerplate.AppDir/etcher/AppRun | true
+	rm -rf $(PWD)/build/Boilerplate.AppDir/etcher/*.svg | true
+	rm -rf $(PWD)/build/Boilerplate.AppDir/etcher/*.png | true
 
-	wget --output-document=$(PWD)/build/build.rpm https://ftp.lysator.liu.se/pub/opensuse/distribution/leap/15.2/repo/oss/x86_64/libatspi0-2.34.0-lp152.2.4.x86_64.rpm
-	cd $(PWD)/build && rpm2cpio $(PWD)/build/build.rpm | cpio -idmv && cd ..
-
-	cp --force --recursive $(PWD)/build/usr/lib64/* $(PWD)/build/squashfs-root/usr/lib
-	cp --force --recursive $(PWD)/build/usr/share/* $(PWD)/build/squashfs-root/usr/share
-
-	export ARCH=x86_64 && $(PWD)/bin/appimagetool.AppImage $(PWD)/build/squashfs-root $(PWD)/Mindomo.AppImage
+	mv $(PWD)/build/squashfs-root/*.desktop $(PWD)/build/Boilerplate.AppDir	 | true
+	cp --force --recursive $(PWD)/build/squashfs-root/* $(PWD)/build/Boilerplate.AppDir/mindomo
+	cp --force $(PWD)/build/Boilerplate.AppDir/share/icons/hicolor/1024x1024/apps/*.png $(PWD)/build/Boilerplate.AppDir | true
+	cp --force $(PWD)/build/Boilerplate.AppDir/share/icons/hicolor/scalable/apps/*.svg $(PWD)/build/Boilerplate.AppDir | true
+	
+	export ARCH=x86_64 && $(PWD)/bin/appimagetool.AppImage $(PWD)/build/Boilerplate.AppDir $(PWD)/Mindomo.AppImage
 	chmod +x $(PWD)/Mindomo.AppImage
 
 clean:
